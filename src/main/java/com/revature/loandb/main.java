@@ -1,3 +1,4 @@
+package com.revature.loandb;
 
 import io.javalin.Javalin;
 
