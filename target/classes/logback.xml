@@ -1,11 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%level] %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- Suppress Javalin logs -->
+    <logger name="io.javalin" level="OFF"/>
+    <logger name="org.eclipse.jetty" level="OFF"/> <!-- Jetty logs -->
+
+    <!-- Root logger (only logs from your application) -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>
