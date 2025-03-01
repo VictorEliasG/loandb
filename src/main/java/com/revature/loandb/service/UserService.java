@@ -1,9 +1,11 @@
 package com.revature.loandb.service;
 
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import com.revature.loandb.dao.UserDao;
 import com.revature.loandb.model.User;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
 
@@ -11,6 +13,10 @@ public class UserService {
 
     public UserService(UserDao userDao) {
         this.userDao = userDao;
+    }
+
+    public User getUserById(int userId) {
+        return userDao.getUserById(userId);
     }
 
     public boolean registerUser(String username, String rawPassword, String role) {
@@ -40,4 +46,30 @@ public class UserService {
     public List<User> getAllUsers() {
         return userDao.getAllUsers();
     }
+
+    public boolean isManager(String username) {
+        User user = userDao.getUserByUsername(username);
+        return user != null && "manager".equals(user.getRole());
+    }
+
+
+        
+    public boolean updateUser(int userId, String username, String password) {
+        User user = userDao.getUserById(userId);
+        if (user == null) {
+            return false;
+        }
+
+        if (!username.equals(user.getUsername()) && userDao.getUserByUsername(username) != null) {
+            return false;
+        }
+
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        user.setUsername(username);
+        user.setPasswordHash(hashedPassword);
+        userDao.updateUser(user);
+        return true;
+    }
+
+
 }
