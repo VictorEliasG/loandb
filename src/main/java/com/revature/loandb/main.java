@@ -1,32 +1,53 @@
 package com.revature.loandb;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import com.revature.loandb.config.DatabaseConfig;
+import com.revature.loandb.config.InitDatabase;
+import com.revature.loandb.controller.UserController;
+import com.revature.loandb.dao.UserDao;
+import com.revature.loandb.service.UserService;
 
-public class main {
+import io.javalin.Javalin;
 
-    public static void jdbcConnection() {
-        String url = "jdbc:postgresql://localhost:5432/loandb";
-        String username = "postgres";
-        String password = "123456";
+public class Main {
 
-        try {
-            Connection connection = DriverManager.getConnection(url, username, password);
-            System.out.println(connection.isValid(5));
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-    }
+   
 
     public static void main(String[] args) {
-
-        jdbcConnection();
         System.out.println("Hello World");
 
-        // var app = Javalin.create(/*config*/)
-        //         .get("/", ctx -> ctx.result("Hello World"))
-        //         .start(7070);
+        // Database credentials
+        String jdbcUrl = "jdbc:postgresql://localhost:5432/loandb";
+        String dbUser = "postgres";
+        String dbPassword = "123456"; //final2kk
+
+        DatabaseConfig dbConfig = new DatabaseConfig(jdbcUrl, dbUser, dbPassword);
+        InitDatabase dbInit = new InitDatabase();
+
+        
+
+        dbConfig.jdbcConnection();
+        // Initialize DB
+        dbInit.resetDatabase(jdbcUrl, dbUser, dbPassword);
+
+        //Create DAOs, Services, Controllers
+        UserDao userDao = new UserDao(jdbcUrl, dbUser, dbPassword);
+        UserService userService = new UserService(userDao);
+        UserController userController = new UserController(userService);
+        
+
+
+
+        var app = Javalin.create(/*config*/)
+                .get("/", ctx -> ctx.result("Hello World"))
+                .start(7070);
+
+        
+        // Define routes using the new {param} syntax
+        app.post("/register", userController::register);
+        app.post("/login", userController::login);
+        app.get("/users", userController::getAllUsers);
+        app.post("/logout", userController::logout);
+
+
     }
 }

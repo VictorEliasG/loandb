@@ -1,24 +1,35 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.revature.loandb.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Properties;
 
+/**
+ *
+ * @author Win 10
+ */
 public class DatabaseConfig {
 
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/loandb";
-    private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "postgres";
+    private final String url;
+    private final String username;
+    private final String password;
 
-    public static Connection getConnection() throws SQLException {
-        Properties props = new Properties();
-        props.setProperty("user", DB_USER);
-        props.setProperty("password", DB_PASSWORD);
-        return DriverManager.getConnection(DB_URL, props);
+    public DatabaseConfig(String url, String username, String password) {
+        this.url = url;
+        this.username = username;
+        this.password = password;
     }
 
-    public static void initializeDatabase() {
-        // Run SQL scripts here (create_users_table.sql, create_loans_table.sql)
+    public void jdbcConnection() {
+        try {
+            Connection connection = DriverManager.getConnection(url, username, password);
+            System.out.println(connection.isValid(5));
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 }

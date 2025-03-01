@@ -1,7 +1,6 @@
 package com.revature.loandb.controller;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.revature.loandb.dto.UserAuthRequestDTO;
 import com.revature.loandb.model.User;
@@ -10,6 +9,7 @@ import com.revature.loandb.service.UserService;
 import io.javalin.http.Context;
 
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -32,29 +32,13 @@ public class UserController {
             return;
         }
 
-        // Define allowed roles
-        Set<String> allowedRoles = Set.of("user", "manager");
-
-        // Set default role if not provided
-        if (req.getRole() == null) {
-            req.setRole("user");
-        }
-
-        // Validate the role
-        if (!allowedRoles.contains(req.getRole())) {
-            ctx.status(400).json("{\"error\":\"Invalid role provided\"}");
-            return;
-        }
-
         boolean success = userService.registerUser(req.getUsername(), req.getPassword(), req.getRole());
-
         if (success) {
             ctx.status(201).json("{\"message\":\"User registered successfully\"}");
         } else {
             ctx.status(409).json("{\"error\":\"Username already exists\"}");
         }
     }
-
 
     /**
      * Handles POST /login with a JSON body:
@@ -73,16 +57,12 @@ public class UserController {
 
         boolean success = userService.loginUser(user.getUsername(), user.getPassword());
         if (success) {
-            ctx.sessionAttribute("user", user.getUsername());
+            // Typically you might return a JWT or session token here
+            // For now we will pretend they are authenticated without cookies
             ctx.status(200).json("{\"message\":\"Login successful\"}");
         } else {
             ctx.status(401).json("{\"error\":\"Invalid credentials\"}");
         }
-    }
-
-    public void logout(Context ctx) {
-        ctx.req().getSession().invalidate();
-        ctx.json(Map.of("message", "Logout successful")).status(200);
     }
 
     /**
