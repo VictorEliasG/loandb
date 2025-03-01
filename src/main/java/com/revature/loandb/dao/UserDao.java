@@ -71,6 +71,28 @@ public class UserDao {
         return null;
     }
 
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                            rs.getInt("id"),
+                            rs.getString("username"),
+                            rs.getString("password_hash"),
+                            rs.getString("role")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users";
@@ -90,5 +112,22 @@ public class UserDao {
             e.printStackTrace();
         }
         return users;
+    }
+
+    public void updateUser(User user) {
+        String sql = "UPDATE users SET username = ?, password_hash = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPasswordHash());
+            stmt.setInt(3, user.getId());
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
