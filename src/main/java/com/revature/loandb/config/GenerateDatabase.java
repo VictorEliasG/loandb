@@ -41,8 +41,8 @@ public class GenerateDatabase {
             ('Peter Parker', '$2a$10$zslYvI15cPv.XC0fd0Xx.ufPgsuEKWtJ9oarc1ZNbmQOlGxnHdRQW', 'user'),
             ('Bruce Banner', '$2a$10$05bCV5hR.KQgmK8hvJIFD.zYAG6nvQ1TlmiiIKYkk47QXgsnf7lXi', 'user'),
             ('Natasha Romanov', '$2a$10$QBsl3d2xEdT5M4Y3kA.KbO0Or0Hi4tTLUKOe4tBfphlNK0XbTn6YW', 'user'),
-            ('Thor Odinson', '$2a$10$SQ4F12P56QVFNzi2WGzZveEoAsJP20rIyC3c/8IhrmKgHpTYtYgoO', 'user');
-
+            ('Thor Odinson', '$2a$10$SQ4F12P56QVFNzi2WGzZveEoAsJP20rIyC3c/8IhrmKgHpTYtYgoO', 'user'),
+            ('Clint Barton', '$2a$10$jpvQTbOXdVQGFxNdNFXxge76HXSGAWVknNOMyxK/1h7pg/ULPEekG', 'manager');
         -- Insert sample loans
         INSERT INTO loans (user_id, amount, type, status) VALUES 
             (1, 50000.00, 'Business', 'approved'),

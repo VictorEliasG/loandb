@@ -46,20 +46,28 @@ public class Main {
                 .start(7070);
 
         // Define routes using the new {param} syntax
-        // ------ USER ROUTES ------
-        //  GET
-        app.get("/users", userController::getUsers);
-        app.get("/user/{id}", userController::getUserById);
+        // ------ AUTH ROUTES ------
         //  POST
         app.post("/auth/register", userController::register);
         app.post("/auth/login", userController::login);
         app.post("/auth/logout", userController::logout);
+
+        // ------ USER ROUTES ------
+        //  GET
+        app.get("/users", userController::getUsers);
+        app.get("/user/{id}", userController::getUserById);
+        
         //  PUT
         app.put("/user/{id}", userController::updateUser);
 
         // ------ LOAN ROUTES ------
+        // GET
+        app.get("/loans", loanController::getLoans);
+        app.get("/loan/{id}", loanController::getLoan);
         //  POST
         app.post("/loans", loanController::createLoan);
-
+        // PUT
+        app.put("/loan/{id}/approve", loanController::updateLoan);
+        //app.put("/loan/{id}/reject", loanController::updateLoan);
     }
 }

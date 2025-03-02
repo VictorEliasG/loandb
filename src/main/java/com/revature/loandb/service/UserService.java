@@ -43,7 +43,7 @@ public class UserService {
         return BCrypt.checkpw(rawPassword, existingUser.getPasswordHash());
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getUsers() {
         return userDao.getAllUsers();
     }
 

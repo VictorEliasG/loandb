@@ -11,7 +11,13 @@ public class Loan {
     private int amount;
     private String type;
     private String status;
-
+    
+    public Loan(int userId, int amount, String type, String status) {
+        this.userId = userId;
+        this.amount = amount;
+        this.type = type;
+        this.status = status;
+    }
     // Getters and setters
     public int getId() {
         return id;

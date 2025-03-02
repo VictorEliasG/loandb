@@ -13,17 +13,25 @@ import io.javalin.http.Context;
 public class UserController {
 
     private final UserService userService;
-    
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     /**
-     * GET /user Returns JSON of a user by id only if the user is a manager
+     * GET /users Returns JSON of all users only if the user is a manager
      */
     public void getUsers(Context ctx) {
-        List<User> users = userService.getAllUsers();
-        ctx.json(users);
+        String sessionUser = ctx.sessionAttribute("user");
+
+        if (sessionUser == null || !userService.isManager(sessionUser)) {
+            ctx.status(403).json("{\"error\":\"Forbidden\"}");
+        } else {
+            List<User> users = userService.getUsers();
+            System.out.println("Users: " + users);
+            ctx.json(users);
+        }
+
     }
 
     /**
@@ -127,8 +135,14 @@ public class UserController {
     }
 
     public void logout(Context ctx) {
+        // get user name from session
+        String sessionUser = ctx.sessionAttribute("user");
+        System.out.println("User logged out "+sessionUser);
+        // add username in map
+
         ctx.req().getSession().invalidate();
-        ctx.json(Map.of("message", "Logout successful")).status(200);
+        ctx.json(Map.of("username",sessionUser,"message", "Logout successful")).status(200);
+
     }
 
     public void updateUser(Context ctx) {
