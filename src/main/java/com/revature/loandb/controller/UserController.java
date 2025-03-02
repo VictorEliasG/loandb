@@ -13,11 +13,10 @@ import io.javalin.http.Context;
 public class UserController {
 
     private final UserService userService;
-
+    
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
 
     /**
      * GET /user Returns JSON of a user by id only if the user is a manager
@@ -41,25 +40,32 @@ public class UserController {
         }
 
         String sessionUser = ctx.sessionAttribute("user");
-        
+
         User user = userService.getUserById(userId);
-        
+
         if (user == null) {
             ctx.status(404).json("{\"error\":\"User not found\"}");
-  
+
         } else {
             ctx.json(user);
         }
 
-        System.out.println("User currently logged in "+sessionUser);
-        System.out.println("Are you a manager? "+ userService.isManager(sessionUser));
-        System.out.println("Are you requesting your own profile? "+ sessionUser.equals(user.getUsername()));
+        try {
 
-        if (sessionUser != null && (sessionUser.equals(user.getUsername()) || userService.isManager(sessionUser))) {
-            ctx.json(user);
-        } else {
-            ctx.status(403).json("{\"error\":\"Forbidden\"}");
+            System.out.println("User currently logged in " + sessionUser);
+            System.out.println("Are you a manager? " + userService.isManager(sessionUser));
+            System.out.println("Are you requesting your own profile? " + sessionUser.equals(user.getUsername()));
+
+            if (sessionUser.equals(user.getUsername()) || userService.isManager(sessionUser)) {
+                ctx.json(user);
+            } else {
+                ctx.status(403).json("{\"error\":\"Forbidden\"}");
+            }
+        } catch (Exception e) {
+            ctx.status(403).json("{\"error\":\"Invalid user\"}");
+
         }
+
     }
 
     /**
@@ -115,7 +121,6 @@ public class UserController {
             ctx.sessionAttribute("user", user.getUsername());
             ctx.status(200).json("{\"message\":\"Login successful\"}");
 
-            
         } else {
             ctx.status(401).json("{\"error\":\"Invalid credentials\"}");
         }
@@ -163,7 +168,5 @@ public class UserController {
             ctx.status(409).json("{\"error\":\"Username already exists\"}");
         }
     }
- 
-    
 
 }
