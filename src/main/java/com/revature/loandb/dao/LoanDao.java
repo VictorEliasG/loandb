@@ -27,12 +27,14 @@ private final String url;
     }
 
     private Loan mapResultSetToUser(ResultSet rs) throws SQLException {
-        return new Loan(
-                rs.getInt("user_id"),
-                rs.getInt("amount"),
-                rs.getString("type"),
-                rs.getString("status")
+        Loan loan = new Loan(
+            rs.getInt("user_id"),
+            rs.getInt("amount"),
+            rs.getString("type"),
+            rs.getString("status")
         );
+        loan.setId(rs.getInt("id"));
+        return loan;
     }
 
     public boolean createLoan(Loan loan) {

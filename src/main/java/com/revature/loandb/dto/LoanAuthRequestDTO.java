@@ -2,12 +2,22 @@ package com.revature.loandb.dto;
 
 public class LoanAuthRequestDTO {
     
+    private int id;
     private int userId;
     private int amount;
     private String type;
     private String status;
 
     // Getters and setters
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public int getUserId() {
         return userId;
     }

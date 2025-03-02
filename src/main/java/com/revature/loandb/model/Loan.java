@@ -12,7 +12,7 @@ public class Loan {
     private String type;
     private String status;
     
-    public Loan(int userId, int amount, String type, String status) {
+    public Loan( int userId, int amount, String type, String status) {
         this.userId = userId;
         this.amount = amount;
         this.type = type;
