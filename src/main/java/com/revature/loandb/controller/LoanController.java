@@ -46,7 +46,7 @@ public class LoanController {
             }
         } catch (Exception e) {
             ctx.status(400).json("{\"error\":\"Invalid loan format\"}");
-            logger.error("Loan format");
+            logger.error("Invalid loan format");
         }
 
     }
@@ -61,47 +61,53 @@ public class LoanController {
             return;
         }
 
-        LoanAuthRequestDTO req = ctx.bodyAsClass(LoanAuthRequestDTO.class);
+        try {
+            LoanAuthRequestDTO req = ctx.bodyAsClass(LoanAuthRequestDTO.class);
 
-        // Check if the status value is provided in the request
-        if (req.getStatus() != null && !req.getStatus().isEmpty()) {
-            ctx.status(400).json("{\"error\":\"Status cannot be modified\"}");
-            logger.warn("Status cannot be modified");
-            return;
+            // Check if the status value is provided in the request
+            if (req.getStatus() != null && !req.getStatus().isEmpty()) {
+                ctx.status(400).json("{\"error\":\"Status cannot be modified\"}");
+                logger.warn("Status cannot be modified");
+                return;
+            }
+
+            // Check if the loan exists
+            String role = ctx.sessionAttribute("role");
+            Integer userId = ctx.sessionAttribute("userId");
+
+            Loan existingLoan = loanService.getLoanById(loanId);
+            if (existingLoan == null) {
+                ctx.status(404).json("{\"error\":\"Loan not found\"}");
+                logger.warn("Loan not found");
+                return;
+            }
+
+            // Allow update if the user is the loan owner or a manager
+            if (role == null || (!role.toLowerCase().contains("manager") && existingLoan.getUserId() != userId)) {
+                ctx.status(403).json("{\"error\":\"Operation not permitted. Only the loan owner or a manager can update the loan.\"}");
+                logger.warn("Operation not permitted. Only the loan owner or a manager can update the loan.");
+                return;
+            }
+
+            existingLoan.setAmount(req.getAmount());
+            existingLoan.setType(req.getType());
+            // Do not update the status value
+            // existingLoan.setStatus(req.getStatus());
+
+            boolean success = loanService.updateLoan(loanId, existingLoan);
+
+            if (success) {
+                ctx.status(200).json("{\"message\":\"Loan updated successfully\"}");
+                logger.info("Loan updated successfully");
+            } else {
+                ctx.status(500).json("{\"error\":\"Failed to update loan\"}");
+                logger.warn("Failed to update loan");
+            }
+        }catch (Exception e) {
+            ctx.status(400).json("{\"error\":\"Invalid loan format\"}");
+            logger.error("Invalid loan format");
         }
 
-        // Check if the loan exists
-        String role = ctx.sessionAttribute("role");
-        Integer userId = ctx.sessionAttribute("userId");
-
-        Loan existingLoan = loanService.getLoanById(loanId);
-        if (existingLoan == null) {
-            ctx.status(404).json("{\"error\":\"Loan not found\"}");
-            logger.warn("Loan not found");
-            return;
-        }
-
-        // Allow update if the user is the loan owner or a manager
-        if (role == null || (!role.toLowerCase().contains("manager") && existingLoan.getUserId() != userId)) {
-            ctx.status(403).json("{\"error\":\"Operation not permitted. Only the loan owner or a manager can update the loan.\"}");
-            logger.warn("Operation not permitted. Only the loan owner or a manager can update the loan.");
-            return;
-        }
-
-        existingLoan.setAmount(req.getAmount());
-        existingLoan.setType(req.getType());
-        // Do not update the status value
-        // existingLoan.setStatus(req.getStatus());
-
-        boolean success = loanService.updateLoan(loanId, existingLoan);
-
-        if (success) {
-            ctx.status(200).json("{\"message\":\"Loan updated successfully\"}");
-            logger.info("Loan updated successfully");
-        } else {
-            ctx.status(500).json("{\"error\":\"Failed to update loan\"}");
-            logger.warn("Failed to update loan");
-        }
     }
 
 
@@ -118,17 +124,25 @@ public class LoanController {
             logger.warn("Operation not permitted. Login required");
             return;
         }
-    
+
+        if (role.equalsIgnoreCase("user")) {
+            ctx.json(loanService.getLoansByUserId(userId));
+            logger.info("Loans retrieved successfully for user");
+            return;
+        }
+
         if (role.toLowerCase().contains("manager")) {
             ctx.json(loanService.getLoans());
+            logger.info("All Loans retrieved successfully for manager");
         } else {
             if (userId == null) {
                 ctx.status(403).json("{\"error\":\"Operation not permitted. Login required.\"}");
                 logger.warn("Operation not permitted. Login required");
                 return;
             }
-            ctx.json(loanService.getLoansByUserId(userId));
+
         }
+
     }
 
     public void getLoan(Context ctx) {
@@ -150,6 +164,7 @@ public class LoanController {
             logger.warn("Loan not found");
         } else {
             ctx.json(loan);
+            logger.info("Loan retrieved successfully");
         }
     }
 

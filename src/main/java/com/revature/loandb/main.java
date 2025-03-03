@@ -20,15 +20,6 @@ public class main {
         Logger logger = LoggerFactory.getLogger(main.class);
         logger.info("My first log");
 
-        /*
-        * 5 logging levels
-        * trace <- Least severe
-        * debug
-        * info
-        * warn
-        * error <- Most severe
-        * */
-
         // Database credentials
         String jdbcUrl = "jdbc:postgresql://localhost:5432/loandb";
         String dbUser = "postgres";
