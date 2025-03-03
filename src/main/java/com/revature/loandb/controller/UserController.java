@@ -18,13 +18,25 @@ public class UserController {
         this.userService = userService;
     }
 
-
     /**
-     * GET /user Returns JSON of a user by id only if the user is a manager
+     * GET /users Returns JSON of all users only if the user is a manager
      */
     public void getUsers(Context ctx) {
-        List<User> users = userService.getAllUsers();
-        ctx.json(users);
+        String sessionUser = ctx.sessionAttribute("user");
+        String sessionRole = ctx.sessionAttribute("role");
+        
+        if (sessionUser == null || sessionRole == null || !sessionRole.equalsIgnoreCase("manager")) {
+            ctx.status(403).json("{\"error\":\"Forbidden\"}");
+            return;
+        }
+
+        try {
+            List<User> users = userService.getUsers();
+            System.out.println("Users: " + users);
+            ctx.json(users);
+        } catch (Exception e) {
+            ctx.status(500).json("{\"error\":\"Internal server error\"}");
+        }
     }
 
     /**
@@ -41,25 +53,32 @@ public class UserController {
         }
 
         String sessionUser = ctx.sessionAttribute("user");
-        
+
         User user = userService.getUserById(userId);
-        
+
         if (user == null) {
             ctx.status(404).json("{\"error\":\"User not found\"}");
-  
+
         } else {
             ctx.json(user);
         }
 
-        System.out.println("User currently logged in "+sessionUser);
-        System.out.println("Are you a manager? "+ userService.isManager(sessionUser));
-        System.out.println("Are you requesting your own profile? "+ sessionUser.equals(user.getUsername()));
+        try {
 
-        if (sessionUser != null && (sessionUser.equals(user.getUsername()) || userService.isManager(sessionUser))) {
-            ctx.json(user);
-        } else {
-            ctx.status(403).json("{\"error\":\"Forbidden\"}");
+            System.out.println("User currently logged in " + sessionUser);
+            System.out.println("Are you a manager? " + userService.isManager(sessionUser));
+            System.out.println("Are you requesting your own profile? " + sessionUser.equals(user.getUsername()));
+
+            if (sessionUser.equals(user.getUsername()) || userService.isManager(sessionUser)) {
+                ctx.json(user);
+            } else {
+                ctx.status(403).json("{\"error\":\"Forbidden\"}");
+            }
+        } catch (Exception e) {
+            ctx.status(403).json("{\"error\":\"Invalid user\"}");
+
         }
+
     }
 
     /**
@@ -110,20 +129,33 @@ public class UserController {
             return;
         }
 
+        // Check if the user is already logged in
+        String sessionUser = ctx.sessionAttribute("user");
+        if (sessionUser != null) {
+            ctx.json(Map.of("username", sessionUser, "message", "User already logged in")).status(200);
+            return;
+        }
+
         boolean success = userService.loginUser(user.getUsername(), user.getPassword());
         if (success) {
-            ctx.sessionAttribute("user", user.getUsername());
+            User loggedInUser = userService.getUserByUsername(user.getUsername());
+            ctx.sessionAttribute("user", loggedInUser.getUsername());
+            ctx.sessionAttribute("role", loggedInUser.getRole());
+            ctx.sessionAttribute("userId", loggedInUser.getId()); // Set userId in session
             ctx.status(200).json("{\"message\":\"Login successful\"}");
-
-            
         } else {
             ctx.status(401).json("{\"error\":\"Invalid credentials\"}");
         }
     }
 
     public void logout(Context ctx) {
+        // get user name from session
+        String sessionUser = ctx.sessionAttribute("user");
+        System.out.println("User logged out " + sessionUser);
+        // invalidate session
         ctx.req().getSession().invalidate();
-        ctx.json(Map.of("message", "Logout successful")).status(200);
+        ctx.json(Map.of("username", sessionUser, "message", "Logout successful")).status(200);
+
     }
 
     public void updateUser(Context ctx) {
@@ -155,6 +187,7 @@ public class UserController {
             return;
         }
 
+        // Check if the username already exists
         boolean success = userService.updateUser(userId, req.getUsername(), req.getPassword());
 
         if (success) {
@@ -163,7 +196,5 @@ public class UserController {
             ctx.status(409).json("{\"error\":\"Username already exists\"}");
         }
     }
- 
-    
 
 }

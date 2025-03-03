@@ -19,6 +19,10 @@ public class UserService {
         return userDao.getUserById(userId);
     }
 
+    public User getUserByUsername(String username) {
+        return userDao.getUserByUsername(username);
+    }
+
     public boolean registerUser(String username, String rawPassword, String role) {
         String hashed = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
 
@@ -43,7 +47,7 @@ public class UserService {
         return BCrypt.checkpw(rawPassword, existingUser.getPasswordHash());
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getUsers() {
         return userDao.getAllUsers();
     }
 

@@ -53,7 +53,7 @@ Create a RESTful back-end application using **Java 17**, **JDBC**, and **Javalin
      - **PUT** `/loans/{loanId}/reject` – Reject a loan (manager only).
 
 ---
-
+ 
 ### **Additional Requirements**
 
 1. **Service Layer Unit Testing (using JUnit)**  
