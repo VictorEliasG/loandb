@@ -48,7 +48,7 @@ private final String url;
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider logging instead.
+            e.printStackTrace(); 
             return false;
         }
     }
@@ -63,7 +63,24 @@ private final String url;
                 loans.add(mapResultSetToUser(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider logging instead.
+            e.printStackTrace(); 
+        }
+        return loans;
+    }
+
+    public List<Loan> getLoansByUserId(int userId) {
+        List<Loan> loans = new ArrayList<>();
+        String sql = "SELECT * FROM loans WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    loans.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); 
         }
         return loans;
     }
@@ -79,12 +96,27 @@ private final String url;
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider logging instead.
+            e.printStackTrace(); 
         }
         return null;
     }
 
     public boolean updateLoan(Loan loan) {
+        String sql = "UPDATE loans SET amount = ?, type = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, loan.getAmount());
+            stmt.setString(2, loan.getType());
+            stmt.setInt(3, loan.getId());
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace(); 
+            return false;
+        }
+    }
+
+    public boolean statusLoan(Loan loan) {
         String sql = "UPDATE loans SET user_id = ?, amount = ?, type = ?, status = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -96,7 +128,7 @@ private final String url;
             int rows = stmt.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider logging instead.
+            e.printStackTrace(); 
             return false;
         }
     }

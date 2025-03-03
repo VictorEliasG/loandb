@@ -49,7 +49,22 @@ public class GenerateDatabase {
             (2, 1200.00, 'Education', 'pending'), 
             (3, 800.00, 'Personal', 'rejected'), 
             (4, 2500.00, 'Home', 'rejected'), 
-            (5, 750.00, 'Personal', 'pending');
+            (5, 750.00, 'Personal', 'approved'),
+            (6, 15000.00, 'Auto', 'approved'),
+            (3, 800.00, 'Medical', 'pending'),
+            (2, 30000.00, 'Auto', 'pending'),
+            (4, 4500.00, 'Debt Consolidation', 'pending'),
+            (6, 2000.00, 'Personal', 'pending'),
+            (2, 100000.00, 'Mortgage', 'pending'),
+            (4, 1500.00, 'Emergency', 'pending'),
+            (6, 25000.00, 'Business Expansion', 'pending'),
+            (1, 5000.00, 'Home Renovation', 'pending'),
+            (2, 1200.00, 'Medical', 'pending'),
+            (5, 3500.00, 'Education', 'pending'),
+            (6, 18000.00, 'Equipment', 'pending'),
+            (4, 900.00, 'Personal', 'pending'),
+            (5, 75000.00, 'Commercial Property', 'pending'),
+            (6, 3000.00, 'Wedding', 'pending');
         """;
 
     //UNHASHED: PASSWORDS ironman, spiderman, hulk, blackwidow, thor

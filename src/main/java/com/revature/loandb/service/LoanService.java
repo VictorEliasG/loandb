@@ -24,12 +24,26 @@ public class LoanService {
         return loanDao.getLoanById(loanId);
     }
 
-    public boolean updateLoan(int loanId, Loan updatedLoan) {
+    public List<Loan> getLoansByUserId(int userId) {
+        return loanDao.getLoansByUserId(userId);
+    }
+
+
+    public boolean updateLoan(int loanId, Loan loan) {
         Loan existingLoan = loanDao.getLoanById(loanId);
         if (existingLoan == null) {
             return false; // Loan not found
         }
-        updatedLoan.setId(loanId); // Ensure the ID remains the same
-        return loanDao.updateLoan(updatedLoan);
+        loan.setId(loanId); // Ensure the ID remains the same
+        return loanDao.updateLoan(loan);
+    }
+
+    public boolean statusLoan(int loanId, Loan statusLoan) {
+        Loan existingLoan = loanDao.getLoanById(loanId);
+        if (existingLoan == null) {
+            return false; // Loan not found
+        }
+        statusLoan.setId(loanId); // Ensure the ID remains the same
+        return loanDao.statusLoan(statusLoan);
     }
 }

@@ -23,15 +23,20 @@ public class UserController {
      */
     public void getUsers(Context ctx) {
         String sessionUser = ctx.sessionAttribute("user");
-
-        if (sessionUser == null || !userService.isManager(sessionUser)) {
+        String sessionRole = ctx.sessionAttribute("role");
+        
+        if (sessionUser == null || sessionRole == null || !sessionRole.equalsIgnoreCase("manager")) {
             ctx.status(403).json("{\"error\":\"Forbidden\"}");
-        } else {
+            return;
+        }
+
+        try {
             List<User> users = userService.getUsers();
             System.out.println("Users: " + users);
             ctx.json(users);
+        } catch (Exception e) {
+            ctx.status(500).json("{\"error\":\"Internal server error\"}");
         }
-
     }
 
     /**
@@ -124,11 +129,20 @@ public class UserController {
             return;
         }
 
+        // Check if the user is already logged in
+        String sessionUser = ctx.sessionAttribute("user");
+        if (sessionUser != null) {
+            ctx.json(Map.of("username", sessionUser, "message", "User already logged in")).status(200);
+            return;
+        }
+
         boolean success = userService.loginUser(user.getUsername(), user.getPassword());
         if (success) {
-            ctx.sessionAttribute("user", user.getUsername());
+            User loggedInUser = userService.getUserByUsername(user.getUsername());
+            ctx.sessionAttribute("user", loggedInUser.getUsername());
+            ctx.sessionAttribute("role", loggedInUser.getRole());
+            ctx.sessionAttribute("userId", loggedInUser.getId()); // Set userId in session
             ctx.status(200).json("{\"message\":\"Login successful\"}");
-
         } else {
             ctx.status(401).json("{\"error\":\"Invalid credentials\"}");
         }
@@ -137,11 +151,10 @@ public class UserController {
     public void logout(Context ctx) {
         // get user name from session
         String sessionUser = ctx.sessionAttribute("user");
-        System.out.println("User logged out "+sessionUser);
-        // add username in map
-
+        System.out.println("User logged out " + sessionUser);
+        // invalidate session
         ctx.req().getSession().invalidate();
-        ctx.json(Map.of("username",sessionUser,"message", "Logout successful")).status(200);
+        ctx.json(Map.of("username", sessionUser, "message", "Logout successful")).status(200);
 
     }
 
@@ -174,6 +187,7 @@ public class UserController {
             return;
         }
 
+        // Check if the username already exists
         boolean success = userService.updateUser(userId, req.getUsername(), req.getPassword());
 
         if (success) {

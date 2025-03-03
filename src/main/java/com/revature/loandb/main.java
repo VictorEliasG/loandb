@@ -67,7 +67,8 @@ public class Main {
         //  POST
         app.post("/loans", loanController::createLoan);
         // PUT
-        app.put("/loan/{id}/approve", loanController::updateLoan);
-        app.put("/loan/{id}/reject", loanController::updateLoan);
+        app.put("/loans/{loanId}", loanController::updateLoan);
+        app.put("/loan/{id}/approve", loanController::statusLoan);
+        app.put("/loan/{id}/reject", loanController::statusLoan);
     }
 }
