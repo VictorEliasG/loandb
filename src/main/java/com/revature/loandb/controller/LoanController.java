@@ -1,40 +1,54 @@
 package com.revature.loandb.controller;
 
 import com.revature.loandb.dto.LoanAuthRequestDTO;
+import com.revature.loandb.main;
 import com.revature.loandb.model.Loan;
 import com.revature.loandb.service.LoanService;
 
 import io.javalin.http.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoanController {
 
     private final LoanService loanService;
+    Logger logger = LoggerFactory.getLogger(main.class);
 
     public LoanController(LoanService loanService) {
         this.loanService = loanService;
     }
 
     public void createLoan(Context ctx) {
-        // Retrieve the loan data from the request body
-        LoanAuthRequestDTO req = ctx.bodyAsClass(LoanAuthRequestDTO.class);
 
-        int userId = (int) ctx.sessionAttribute("userId");
-        req.setUserId(userId);
+        try {
+            // Retrieve the loan data from the request body
+            LoanAuthRequestDTO req = ctx.bodyAsClass(LoanAuthRequestDTO.class);
 
-        if (req.getUserId() <= 0 || req.getAmount() <= 0 || req.getType() == null || req.getType().isEmpty()) {
-            ctx.status(400).json("{\"error\":\"Invalid loan data\"}");
-            return;
+            int userId = ctx.sessionAttribute("userId");
+            req.setUserId(userId);
+
+            if (req.getUserId() <= 0 || req.getAmount() <= 0 || req.getType() == null || req.getType().isEmpty()) {
+                ctx.status(400).json("{\"error\":\"Invalid loan data\"}");
+                logger.warn("Invalid Loan data");
+                return;
+            }
+
+            Loan newLoan = new Loan(req.getUserId(), req.getAmount(), req.getType(), "pending");
+
+            boolean success = loanService.createLoan(newLoan);
+
+            if (success) {
+                ctx.status(201).json("{\"message\":\"Loan created successfully\"}");
+                logger.info("Loan created successfully");
+            } else {
+                ctx.status(500).json("{\"error\":\"Failed to create loan\"}");
+                logger.warn("Failed to create loan");
+            }
+        } catch (Exception e) {
+            ctx.status(400).json("{\"error\":\"Invalid loan format\"}");
+            logger.error("Loan format");
         }
 
-        Loan newLoan = new Loan(req.getUserId(), req.getAmount(), req.getType(), "pending");
-
-        boolean success = loanService.createLoan(newLoan);
-
-        if (success) {
-            ctx.status(201).json("{\"message\":\"Loan created successfully\"}");
-        } else {
-            ctx.status(500).json("{\"error\":\"Failed to create loan\"}");
-        }
     }
 
     public void updateLoan(Context ctx) {
@@ -43,6 +57,7 @@ public class LoanController {
             loanId = Integer.parseInt(ctx.pathParam("loanId"));
         } catch (NumberFormatException e) {
             ctx.status(400).json("{\"error\":\"Invalid loan ID format\"}");
+            logger.error("Invalid Loan ID forman");
             return;
         }
 
@@ -51,6 +66,7 @@ public class LoanController {
         // Check if the status value is provided in the request
         if (req.getStatus() != null && !req.getStatus().isEmpty()) {
             ctx.status(400).json("{\"error\":\"Status cannot be modified\"}");
+            logger.warn("Status cannot be modified");
             return;
         }
 
@@ -61,12 +77,14 @@ public class LoanController {
         Loan existingLoan = loanService.getLoanById(loanId);
         if (existingLoan == null) {
             ctx.status(404).json("{\"error\":\"Loan not found\"}");
+            logger.warn("Loan not found");
             return;
         }
 
         // Allow update if the user is the loan owner or a manager
         if (role == null || (!role.toLowerCase().contains("manager") && existingLoan.getUserId() != userId)) {
             ctx.status(403).json("{\"error\":\"Operation not permitted. Only the loan owner or a manager can update the loan.\"}");
+            logger.warn("Operation not permitted. Only the loan owner or a manager can update the loan.");
             return;
         }
 
@@ -79,8 +97,10 @@ public class LoanController {
 
         if (success) {
             ctx.status(200).json("{\"message\":\"Loan updated successfully\"}");
+            logger.info("Loan updated successfully");
         } else {
             ctx.status(500).json("{\"error\":\"Failed to update loan\"}");
+            logger.warn("Failed to update loan");
         }
     }
 
@@ -95,6 +115,7 @@ public class LoanController {
         // If the user is not logged in, return an error
         if (role == null) {
             ctx.status(403).json("{\"error\":\"Operation not permitted. Login required.\"}");
+            logger.warn("Operation not permitted. Login required");
             return;
         }
     
@@ -103,6 +124,7 @@ public class LoanController {
         } else {
             if (userId == null) {
                 ctx.status(403).json("{\"error\":\"Operation not permitted. Login required.\"}");
+                logger.warn("Operation not permitted. Login required");
                 return;
             }
             ctx.json(loanService.getLoansByUserId(userId));
@@ -116,6 +138,7 @@ public class LoanController {
             loanId = Integer.parseInt(ctx.pathParam("id"));
         } catch (NumberFormatException e) {
             ctx.status(400).json("{\"error\":\"Invalid loan ID format\"}");
+            logger.error("Invalid loan ID format");
             return;
         }
 
@@ -124,6 +147,7 @@ public class LoanController {
 
         if (loan == null) {
             ctx.status(404).json("{\"error\":\"Loan not found\"}");
+            logger.warn("Loan not found");
         } else {
             ctx.json(loan);
         }
@@ -138,6 +162,7 @@ public class LoanController {
 
         if (role == null || !role.toLowerCase().contains("manager")) {
             ctx.status(403).json("{\"error\":\"Operation not permitted. Manager access required.\"}");
+            logger.warn("Operation not permitted. Manager access required.");
             return;
         }
 
@@ -147,6 +172,7 @@ public class LoanController {
             loanId = Integer.parseInt(loanIdStr);
         } catch (NumberFormatException e) {
             ctx.status(400).json("{\"error\":\"Invalid loan ID format\"}");
+            logger.error("Invalid loan ID format");
             return;
         }
 
@@ -159,6 +185,7 @@ public class LoanController {
             newStatus = "rejected";
         } else {
             ctx.status(400).json("{\"error\":\"Invalid loan operation\"}");
+            logger.warn("Invalid loan operation");
             return;
         }
 
@@ -166,12 +193,14 @@ public class LoanController {
         Loan existingLoan = loanService.getLoanById(loanId);
         if (existingLoan == null) {
             ctx.status(404).json("{\"error\":\"Loan not found\"}");
+            logger.warn("Loan not found");
             return;
         }
 
         // Only update if the current status is pending
         if (!"pending".equalsIgnoreCase(existingLoan.getStatus())) {
             ctx.status(400).json("{\"error\":\"Only loans with a pending status can be updated\"}");
+            logger.warn("Only loans with a pending status can be updated");
             return;
         }
 
@@ -183,8 +212,10 @@ public class LoanController {
         
         if (success) {
             ctx.status(200).json("{\"message\":\"Loan updated successfully\"}");
+            logger.info("Loan updated successfully");
         } else {
             ctx.status(500).json("{\"error\":\"Failed to update loan\"}");
+            logger.warn("Failed to update loan");
         }
     }
 }

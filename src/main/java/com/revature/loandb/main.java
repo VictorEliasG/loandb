@@ -1,5 +1,8 @@
 package com.revature.loandb;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.revature.loandb.config.DatabaseConfig;
 import com.revature.loandb.config.GenerateDatabase;
 import com.revature.loandb.controller.LoanController;
@@ -11,10 +14,20 @@ import com.revature.loandb.service.UserService;
 
 import io.javalin.Javalin;
 
-public class Main {
+public class main {
 
     public static void main(String[] args) {
-        System.out.println("Hello World");
+        Logger logger = LoggerFactory.getLogger(main.class);
+        logger.info("My first log");
+
+        /*
+        * 5 logging levels
+        * trace <- Least severe
+        * debug
+        * info
+        * warn
+        * error <- Most severe
+        * */
 
         // Database credentials
         String jdbcUrl = "jdbc:postgresql://localhost:5432/loandb";
