@@ -1,7 +1,6 @@
 package com.revature.loandb.controller;
 
 import com.revature.loandb.dto.LoanAuthRequestDTO;
-import com.revature.loandb.main;
 import com.revature.loandb.model.Loan;
 import com.revature.loandb.service.LoanService;
 
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class LoanController {
 
     private final LoanService loanService;
-    Logger logger = LoggerFactory.getLogger(main.class);
+    Logger logger = LoggerFactory.getLogger(LoanController.class);
 
     public LoanController(LoanService loanService) {
         this.loanService = loanService;

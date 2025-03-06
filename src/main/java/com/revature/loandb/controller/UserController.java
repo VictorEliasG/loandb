@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.revature.loandb.dto.UserAuthRequestDTO;
-import com.revature.loandb.main;
+import com.revature.loandb.Main;
 import com.revature.loandb.model.User;
 import com.revature.loandb.service.UserService;
 
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class UserController {
 
     private final UserService userService;
-    Logger logger = LoggerFactory.getLogger(main.class);
+    Logger logger = LoggerFactory.getLogger(Main.class);
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -162,6 +162,7 @@ public class UserController {
                 ctx.sessionAttribute("userId", loggedInUser.getId()); // Set userId in session
                 ctx.status(200).json("{\"message\":\"Login successful\"}");
                 logger.info("Login sucessful");
+
             } else {
                 ctx.status(401).json("{\"error\":\"Invalid credentials\"}");
                 logger.warn("Invalid credencials");
@@ -175,12 +176,19 @@ public class UserController {
 
     public void logout(Context ctx) {
         // get user name from session
-        String sessionUser = ctx.sessionAttribute("user");
-        System.out.println("User logged out " + sessionUser);
-        // invalidate session
-        ctx.req().getSession().invalidate();
-        ctx.json(Map.of("username", sessionUser, "message", "Logout successful")).status(200);
-        logger.info("Logout successful");
+
+
+        try {
+            String sessionUser = ctx.sessionAttribute("user");
+            System.out.println("User logged out " + sessionUser);
+            // invalidate session
+            ctx.req().getSession().invalidate();
+            ctx.json(Map.of("username", sessionUser, "message", "Logout successful")).status(200);
+            logger.info("Logout successful");
+        } catch (Exception e) {
+            ctx.status(403).json("{\"error\":\"User is not logged in\"}");
+            logger.error("User is not logged in");
+        }
 
     }
 
