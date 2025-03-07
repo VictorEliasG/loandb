@@ -1,12 +1,13 @@
 package com.revature.loandb.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.revature.loandb.dto.LoanAuthRequestDTO;
 import com.revature.loandb.model.Loan;
 import com.revature.loandb.service.LoanService;
 
 import io.javalin.http.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LoanController {
 
@@ -83,7 +84,8 @@ public class LoanController {
 
             // Allow update if the user is the loan owner or a manager
             if (role == null || (!role.toLowerCase().contains("manager") && existingLoan.getUserId() != userId)) {
-                ctx.status(403).json("{\"error\":\"Operation not permitted. Only the loan owner or a manager can update the loan.\"}");
+                ctx.status(403).json(
+                        "{\"error\":\"Operation not permitted. Only the loan owner or a manager can update the loan.\"}");
                 logger.warn("Operation not permitted. Only the loan owner or a manager can update the loan.");
                 return;
             }
@@ -102,21 +104,18 @@ public class LoanController {
                 ctx.status(500).json("{\"error\":\"Failed to update loan\"}");
                 logger.warn("Failed to update loan");
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             ctx.status(400).json("{\"error\":\"Invalid loan format\"}");
             logger.error("Invalid loan format");
         }
 
     }
 
-
     public void getLoans(Context ctx) {
         // Allow users to view their own loans or managers to view all loans
         String role = ctx.sessionAttribute("role");
         Integer userId = ctx.sessionAttribute("userId");
-    
-        System.out.println("Role: " + role); // After logging in as a manager, this should print "manager" instead of null
-        
+
         // If the user is not logged in, return an error
         if (role == null) {
             ctx.status(403).json("{\"error\":\"Operation not permitted. Login required.\"}");
@@ -137,7 +136,6 @@ public class LoanController {
             if (userId == null) {
                 ctx.status(403).json("{\"error\":\"Operation not permitted. Login required.\"}");
                 logger.warn("Operation not permitted. Login required");
-                return;
             }
 
         }
@@ -161,18 +159,28 @@ public class LoanController {
         if (loan == null) {
             ctx.status(404).json("{\"error\":\"Loan not found\"}");
             logger.warn("Loan not found");
-        } else {
-            ctx.json(loan);
-            logger.info("Loan retrieved successfully");
+            return;
         }
+
+        // Check user role and ownership
+        String role = ctx.sessionAttribute("role");
+        Integer userId = ctx.sessionAttribute("userId");
+
+        if (role == null || (!role.toLowerCase().contains("manager") && loan.getUserId() != userId)) {
+            ctx.status(403).json(
+                    "{\"error\":\"Operation not permitted. Only the loan owner or a manager can view the loan.\"}");
+            logger.warn("Operation not permitted. Only the loan owner or a manager can view the loan.");
+            return;
+        }
+
+        ctx.json(loan);
+        logger.info("Loan retrieved successfully");
     }
 
     public void statusLoan(Context ctx) {
 
         // Only allow managers to perform this update
         String role = ctx.sessionAttribute("role");
-
-        System.out.println("Role: " + role); // After logging in as a manager, this should print "manager" instead of null
 
         if (role == null || !role.toLowerCase().contains("manager")) {
             ctx.status(403).json("{\"error\":\"Operation not permitted. Manager access required.\"}");
@@ -223,7 +231,7 @@ public class LoanController {
 
         // Update the loan status
         boolean success = loanService.statusLoan(loanId, existingLoan);
-        
+
         if (success) {
             ctx.status(200).json("{\"message\":\"Loan updated successfully\"}");
             logger.info("Loan updated successfully");

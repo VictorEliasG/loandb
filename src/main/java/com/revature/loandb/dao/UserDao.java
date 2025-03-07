@@ -32,14 +32,13 @@ public class UserDao {
                 rs.getInt("id"),
                 rs.getString("username"),
                 rs.getString("password_hash"),
-                rs.getString("role")
-        );
+                rs.getString("role"));
     }
 
     public User createUser(User newUser) {
         String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, newUser.getUsername());
             stmt.setString(2, newUser.getPasswordHash());
             stmt.setString(3, newUser.getRole());
@@ -58,7 +57,7 @@ public class UserDao {
     public User getUserByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -74,7 +73,7 @@ public class UserDao {
     public User getUserById(int userId) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -91,8 +90,8 @@ public class UserDao {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
             }
@@ -105,7 +104,20 @@ public class UserDao {
     public void updateUser(User user) {
         String sql = "UPDATE users SET username = ?, password_hash = ? WHERE id = ?";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPasswordHash());
+            stmt.setInt(3, user.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace(); // Consider logging instead.
+        }
+    }
+
+    public void updateUserRole(User user) {
+        String sql = "UPDATE users SET username = ?, password_hash = ? role = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPasswordHash());
             stmt.setInt(3, user.getId());

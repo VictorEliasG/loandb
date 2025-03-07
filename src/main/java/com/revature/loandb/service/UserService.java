@@ -56,8 +56,6 @@ public class UserService {
         return user != null && "manager".equals(user.getRole());
     }
 
-
-        
     public boolean updateUser(int userId, String username, String password) {
         User user = userDao.getUserById(userId);
         if (user == null) {
@@ -75,5 +73,14 @@ public class UserService {
         return true;
     }
 
+    public boolean updateUserRole(int userId, String role) {
+        User user = userDao.getUserById(userId);
+        if (user == null) {
+            return false;
+        }
 
+        user.setRole(role);
+        userDao.updateUser(user);
+        return true;
+    }
 }

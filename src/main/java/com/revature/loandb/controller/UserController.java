@@ -4,19 +4,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.revature.loandb.dto.UserAuthRequestDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.revature.loandb.Main;
+import com.revature.loandb.dto.UserAuthRequestDTO;
 import com.revature.loandb.model.User;
 import com.revature.loandb.service.UserService;
 
 import io.javalin.http.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UserController {
 
     private final UserService userService;
     Logger logger = LoggerFactory.getLogger(Main.class);
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -27,7 +29,7 @@ public class UserController {
     public void getUsers(Context ctx) {
         String sessionUser = ctx.sessionAttribute("user");
         String sessionRole = ctx.sessionAttribute("role");
-        
+
         if (sessionUser == null || sessionRole == null || !sessionRole.equalsIgnoreCase("manager")) {
             ctx.status(403).json("{\"error\":\"Forbidden\"}");
             logger.warn("Forbidden");
@@ -36,8 +38,8 @@ public class UserController {
 
         try {
             List<User> users = userService.getUsers();
-            System.out.println("Users: " + users);
             ctx.json(users);
+            logger.error("Users retrieved successfully");
         } catch (Exception e) {
             ctx.status(500).json("{\"error\":\"Internal server error\"}");
             logger.error("Internal server error");
@@ -67,7 +69,8 @@ public class UserController {
             logger.info("User not found");
         } else {
             ctx.json(user);
-            logger.info("User retrieved successfully");;
+            logger.info("User retrieved successfully");
+            ;
         }
 
         try {
@@ -94,9 +97,18 @@ public class UserController {
             // Parsed request JSON into our DTO
             UserAuthRequestDTO req = ctx.bodyAsClass(UserAuthRequestDTO.class);
 
-            if (req.getUsername() == null || req.getPassword() == null) {
+            if (req.getUsername() == null || req.getPassword() == null || req.getUsername().trim().isEmpty()
+                    || req.getPassword().trim().isEmpty()) {
                 ctx.status(400).json("{\"error\":\"Missing username or password\"}");
                 logger.warn("Missing username or password");
+                return;
+            }
+
+            // Check for minimum length
+            if (req.getUsername().length() < 3 || req.getPassword().length() < 4) {
+                ctx.status(400).json(
+                        "{\"error\":\"Username must be at least 3 characters and password at least 6 characters\"}");
+                logger.warn("Username must be at least 3 characters and password at least 4 characters");
                 return;
             }
 
@@ -119,7 +131,7 @@ public class UserController {
 
             if (success) {
                 ctx.status(201).json("{\"message\":\"User registered successfully\"}");
-                logger.info("User register successfullu");
+                logger.info("User registered successfully");
             } else {
                 ctx.status(409).json("{\"error\":\"Username already exists\"}");
                 logger.warn("Username already exists");
@@ -128,7 +140,6 @@ public class UserController {
             ctx.status(403).json("{\"error\":\"Invalid user format\"}");
             logger.error("Invalid user format");
         }
-
 
     }
 
@@ -177,10 +188,8 @@ public class UserController {
     public void logout(Context ctx) {
         // get user name from session
 
-
         try {
             String sessionUser = ctx.sessionAttribute("user");
-            System.out.println("User logged out " + sessionUser);
             // invalidate session
             ctx.req().getSession().invalidate();
             ctx.json(Map.of("username", sessionUser, "message", "Logout successful")).status(200);
@@ -229,8 +238,20 @@ public class UserController {
         boolean success = userService.updateUser(userId, req.getUsername(), req.getPassword());
 
         if (success) {
+            // Only managers can update the role to "manager"
+            if ("manager".equals(req.getRole()) && !userService.isManager(sessionUser)) {
+                ctx.status(403).json("{\"error\":\"Only managers can update the role to manager\"}");
+                logger.warn("Only managers can update the role to manager");
+                return;
+            }
+
+            // Update the role if provided and valid
+            if (req.getRole() != null && Set.of("user", "manager").contains(req.getRole())) {
+                userService.updateUserRole(userId, req.getRole());
+            }
+
             ctx.status(200).json("{\"message\":\"User updated successfully\"}");
-            logger.info("User updated successfullu");
+            logger.info("User updated successfully");
         } else {
             ctx.status(409).json("{\"error\":\"Username already exists\"}");
             logger.warn("Username already exists");

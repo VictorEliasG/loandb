@@ -42,7 +42,7 @@ loandb.jar
   - **GET** `/users/{id}` – Get user info (user can only see their own, or manager can see any user).
   - **PUT** `/users/{id}` – Update user profile (only if it’s the same user or a manager).
   - **POST** `/loans` – Create a loan (logged-in user).
-  - **GET** `/loans` – View all loans (manager only) or just the user’s loans (regular user). You can implement this in two separate endpoints or a single endpoint with conditional filtering.
+  - **GET** `/loans` – View all loans (manager only) or just the user’s loans (regular user).
   - **GET** `/loans/{loanId}` – View a specific loan (owner or manager).
   - **PUT** `/loans/{loanId}` – Update the loan (owner or manager).
   - **PUT** `/loans/{loanId}/approve` – Approve a loan (manager only).

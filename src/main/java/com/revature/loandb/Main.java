@@ -32,7 +32,7 @@ public class Main {
         // Initialize DB
         dbInit.resetDatabase(jdbcUrl, dbUser, dbPassword);
 
-        //Create DAOs, Services, Controllers
+        // Create DAOs, Services, Controllers
         // ------ USER ------
         UserDao userDao = new UserDao(jdbcUrl, dbUser, dbPassword);
         UserService userService = new UserService(userDao);
@@ -41,34 +41,31 @@ public class Main {
         LoanDao loanDao = new LoanDao(jdbcUrl, dbUser, dbPassword);
         LoanService loanService = new LoanService(loanDao);
         LoanController loanController = new LoanController(loanService);
-        
-        
 
-        
-        var app = Javalin.create(/*config*/)
+        var app = Javalin.create(/* config */)
                 .get("/", ctx -> ctx.result("Hello World"))
                 .start(7070);
 
         // Define routes using the new {param} syntax
         // ------ AUTH ROUTES ------
-        //  POST
+        // POST
         app.post("/auth/register", userController::register);
         app.post("/auth/login", userController::login);
         app.post("/auth/logout", userController::logout);
 
         // ------ USER ROUTES ------
-        //  GET
+        // GET
         app.get("/users", userController::getUsers);
         app.get("/user/{id}", userController::getUserById);
-        
-        //  PUT
+
+        // PUT
         app.put("/user/{id}", userController::updateUser);
 
         // ------ LOAN ROUTES ------
         // GET
         app.get("/loans", loanController::getLoans);
         app.get("/loan/{id}", loanController::getLoan);
-        //  POST
+        // POST
         app.post("/loans", loanController::createLoan);
         // PUT
         app.put("/loans/{loanId}", loanController::updateLoan);
